@@ -1,5 +1,5 @@
 <?php
-
+//Copy me with the name conectar_bd.php and fill 'user' and 'passowrd' gaps.
 //Utilizamos PDO para evitar el SQLInjection.
 function conectarBD($bd) {
 	try{
