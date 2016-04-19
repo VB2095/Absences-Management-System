@@ -63,4 +63,5 @@ define('fake_cod_profesor','Modificar un altre professor');
 define('selecciona_profesor','Selecciona un professor al que afegir faltes i esborrar-les.');
 define('estas_modificando','Estàs modificant a ');
 define('volver_a_mi','De tornada a mi');
+define('bd_problem','Hay un problema en la conexión con la base de datos. Consulta con el administrador.');
 ?>

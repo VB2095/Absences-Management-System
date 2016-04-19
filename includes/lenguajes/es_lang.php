@@ -63,6 +63,6 @@ define('fake_cod_profesor','Modificar otro profesor');
 define('selecciona_profesor','Selecciona un profesor al que añadir faltas y borrarlas.');
 define('estas_modificando','Estás modificando a ');
 define('volver_a_mi','Volver a mí');
-
+define('bd_problem','Hay un problema en la conexión con la base de datos. Consulta con el administrador.');
 
 ?>

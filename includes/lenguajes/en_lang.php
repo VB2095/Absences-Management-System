@@ -1,5 +1,5 @@
 <?php
-//* Idioma: Inglés
+//* Idioma: Inglï¿½s
 
 define('hora', 'HOUR');
 define('falta','ABSENT');
@@ -63,4 +63,5 @@ define('fake_cod_profesor','Modify other teacher');
 define('selecciona_profesor','Select a teacher who add and delete absences.');
 define('estas_modificando','You are modifying ');
 define('volver_a_mi','Back to me');
+define('bd_problem','There is a problem in the connection with the Data Base. Ask the administrador.');
 ?>
