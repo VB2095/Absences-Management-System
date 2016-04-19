@@ -1,13 +1,13 @@
 <?php session_start(); ?>
 <?php
 include_once('../conectar_bd.php');
-//Función para la función de php uasort, que ordena los vectores.
+//Funciï¿½n para la funciï¿½n de php uasort, que ordena los vectores.
 function ordename ($a, $b) {
   	return $a['metrica'] - $b['metrica'];
 }
 
 if (!isset($_GET['fecha_calendario']) || !isset($_SESSION["cod_profesor"])) {
-	die("Por favor, incluye una fecha y/o inicia sesión.");
+	die("Por favor, incluye una fecha y/o inicia sesiï¿½n.");
 }
 
 //Ahora comprobamos si soy fake_cod_profesor para que el administrador pueda editar cualquier profesor:
@@ -17,7 +17,7 @@ if(isset($_SESSION["fake_cod_profesor"])) {
 }else {
 	$session_cod_profesor = $_SESSION["cod_profesor"];
 }
-//A partir de este momento usaré siempre este session_cod_profesor.
+//A partir de este momento usarï¿½ siempre este session_cod_profesor.
 
 $fecha_calendario = $_GET['fecha_calendario'];
 $dia_semana = $_GET['dia_semana'];
@@ -27,23 +27,23 @@ $dia_semana = $_GET['dia_semana'];
 $arr = array();
 
 //Nos conectamos (creamos el objeto) a guardias:
-$dbConnection_guardias = conectarBD(guardias);
+$dbConnection_guardias = conectarBD('guardias');
 //Ahora nos conectamos (creamos el objeto) a actividades extraescolares:
-$dbConnection_actividades_profesores = conectarBD(actividades_extraescolares);
+$dbConnection_actividades_profesores = conectarBD('actividades_extraescolares');
 
-//Consulta de todas las horas de un día:
+//Consulta de todas las horas de un dï¿½a:
 $horas = $dbConnection_guardias->prepare('SELECT * FROM horas');
 $horas -> execute();
 
 while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 	$arr[$obj->cod_hora]["horario"] = array("cod_hora" => $obj->cod_hora,"hora_inicio" => $obj->hora_inicio, "hora_fin" => $obj->hora_fin);
-	
-	//Consulta de profesores que faltan un día concreto a esa hora:
+
+	//Consulta de profesores que faltan un dï¿½a concreto a esa hora:
 	$guardias = $dbConnection_guardias->prepare('SELECT cod_profesor AS profesor FROM ausencias_profesores WHERE fecha = :fecha_calendario AND cod_hora = :cod_hora');
 	$guardias -> bindParam(':fecha_calendario',$fecha_calendario);
 	$guardias -> bindParam(':cod_hora',$obj->cod_hora);
 	$guardias -> execute();
-		
+
 	//Para cada profesor sacamos el nombre, el grupo, etc.
 	//$arr[$obj->cod_hora]["falta"] = array();
 	while($objGuardias = $guardias -> fetch(PDO::FETCH_OBJ)) {
@@ -53,7 +53,7 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 		$nombreProfesor->bindParam(':cod_profesor',$objGuardias->profesor);
 		$nombreProfesor->execute();
 		$nombreProfesor = $nombreProfesor->fetch(PDO::FETCH_ASSOC);
-		//Lo añadimos al objeto para añadirlo al array:
+		//Lo aï¿½adimos al objeto para aï¿½adirlo al array:
 		$arr[$obj->cod_hora]["falta"][$objGuardias->profesor] = $nombreProfesor ;
 
 		//Buscamos el/los grupos al que falta:
@@ -66,7 +66,7 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 		while($obj_cod_grupo = $cod_grupo->fetch(PDO::FETCH_ASSOC)){
 			$arr[$obj->cod_hora]["falta"][$objGuardias->profesor]["cod_grupo"][] = $obj_cod_grupo["cod_grupo"];
 		}
-		
+
 		//Buscamos el aula y la asignatura:
 		$nombreAula = $dbConnection_guardias->prepare('SELECT aula, asignatura FROM horarios_profesores WHERE cod_profesor =:cod_profesor AND dia =:dia_semana AND cod_hora = :cod_hora AND cod_grupo = :cod_grupo');
 		$nombreAula->bindParam(':cod_profesor',$objGuardias->profesor);
@@ -77,7 +77,7 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 		$nombreAula = $nombreAula->fetch();
 		$arr[$obj->cod_hora]["falta"][$objGuardias->profesor]["aula"] = $nombreAula["aula"];
 		$arr[$obj->cod_hora]["falta"][$objGuardias->profesor]["asignatura"] = $nombreAula["asignatura"];
-		
+
 		//Sacamos las observaciones y/o los enlaces:
 		$observaciones_enlaces2 = $dbConnection_guardias->prepare('SELECT observaciones, link FROM ausencias_profesores WHERE cod_profesor =:cod_profesor AND cod_hora = :cod_hora AND fecha = :fecha_calendario');
 		$observaciones_enlaces2->bindParam(':cod_profesor',$objGuardias->profesor);
@@ -95,41 +95,41 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 				$arr[$obj->cod_hora]["falta"][$objGuardias->profesor]["observaciones"] = $observaciones_enlaces[observaciones];
 			}
 		}
-		
-		
-		
+
+
+
 		/*
 			Sustitutos:
 							*/
 		//Hacemos la lista de profesores que le pueden sustituir:
-			
-		$sustituye = $dbConnection_guardias->prepare('SELECT cod_profesor FROM horarios_profesores WHERE dia = :dia_semana and cod_hora = :cod_hora AND cod_grupo = "GUARDIA" AND aula <> "BIBLIOTECA" AND cod_profesor NOT IN 
-			(SELECT cod_profesor FROM historico_guardias WHERE  fecha = :fecha AND cod_hora = :cod_hora2 AND cod_ausente != :cod_ausente) AND cod_profesor NOT IN 
+
+		$sustituye = $dbConnection_guardias->prepare('SELECT cod_profesor FROM horarios_profesores WHERE dia = :dia_semana and cod_hora = :cod_hora AND cod_grupo = "GUARDIA" AND aula <> "BIBLIOTECA" AND cod_profesor NOT IN
+			(SELECT cod_profesor FROM historico_guardias WHERE  fecha = :fecha AND cod_hora = :cod_hora2 AND cod_ausente != :cod_ausente) AND cod_profesor NOT IN
 								(SELECT cod_profesor FROM ausencias_profesores WHERE fecha = :fecha3 AND cod_hora = :cod_hora3)');
 
-		//Select		
-		$sustituye->bindParam(':dia_semana',$dia_semana);		
-		$sustituye->bindParam(':cod_hora',$obj->cod_hora);	
-		
+		//Select
+		$sustituye->bindParam(':dia_semana',$dia_semana);
+		$sustituye->bindParam(':cod_hora',$obj->cod_hora);
+
 		//Subselect
 		$sustituye->bindParam(':fecha',$fecha_calendario);
 		$sustituye->bindParam(':cod_ausente',$objGuardias->profesor);
 		$sustituye->bindParam(':cod_hora2',$obj->cod_hora);
-		
+
 		//Subselect 3:
 		$sustituye->bindParam(':fecha3',$fecha_calendario);
 		$sustituye->bindParam(':cod_hora3',$obj->cod_hora);
-		
+
 		$sustituye->execute();
 		$sustituye = $sustituye->fetchAll();
 		$sustituye_array = array();
 		//Nos hacemos el array con cada cod_profesor que puede sustituir:
 		foreach($sustituye as $fila){
-			
+
 			//$sustituye_array[$fila[cod_profesor]]=array();
 			$sustituye_array[]=array("cod_profesor"=>$fila[cod_profesor]);
 		}
-		
+
 		//Buscamos el nombre de cada profesor que puede sustituir:
 		foreach($sustituye_array as $key=> $valor){
 			$nombreProfesor = $dbConnection_actividades_profesores->prepare('SELECT nombre_completo FROM profesores WHERE cod_profesor =:cod_profesor');
@@ -138,20 +138,20 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 			$nombreProfesor = $nombreProfesor->fetch(PDO::FETCH_ASSOC);
 			//Lo guardo en el vector:
 			$sustituye_array[$key]["nombre_completo"] = $nombreProfesor[nombre_completo];
-			
-			//Ahora buscamos su métrica:
+
+			//Ahora buscamos su mï¿½trica:
 			$metrica = $dbConnection_guardias->prepare('SELECT metrica FROM historico_guardias where cod_profesor = :cod_profesor');
 			$metrica->bindParam(':cod_profesor',$valor["cod_profesor"]);
 			$metrica->execute();
 			$metrica_final = 0;
-			while($metrica2 = $metrica->fetch(PDO::FETCH_ASSOC)){				
+			while($metrica2 = $metrica->fetch(PDO::FETCH_ASSOC)){
 				$metrica_final = $metrica_final + $metrica2["metrica"];
 			}
 			$metrica = $metrica_final;
 			//Lo guardo en el array:
 			$sustituye_array[$key][metrica] = $metrica;
-			
-			//Ahora quien tiene la sustitución asignada:
+
+			//Ahora quien tiene la sustituciï¿½n asignada:
 			$hace_sustitucion = $dbConnection_guardias->prepare('SELECT * FROM historico_guardias WHERE cod_profesor =:cod_profesor AND fecha =:fecha AND cod_hora = :cod_hora AND cod_ausente = :cod_ausente');
 
 			$hace_sustitucion->bindParam(':cod_profesor',$valor["cod_profesor"]);
@@ -159,17 +159,17 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 			$hace_sustitucion->bindParam(':cod_hora',$obj->cod_hora);
 			$hace_sustitucion->bindParam(':cod_ausente',$objGuardias->profesor);
 			$hace_sustitucion->execute();
-			
+
 			$hace_sustitucion = $hace_sustitucion->fetch();
 			if ($hace_sustitucion != null){
 				$sustituye_array[$key]["sustituye"] = 1;
 			}else{
 				$sustituye_array[$key]["sustituye"] = 0;
 			}
-			
-			
+
+
 		}
-				
+
 
 		//Ordenamos el array para que los profesores con menos metrica salgan primero:
 
@@ -177,27 +177,27 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 			foreach($sustituye_array as $key => $value){
 				$ordenar[$key] = $value["metrica"];
 			}
-	
+
 			$ordenar2 = asort($ordenar);
-		
-	
+
+
 			foreach($ordenar as $key => $value){
 				$sustituye_array2[] = $sustituye_array[$key];
 			}
-	
-	
+
+
 			$arr[$obj->cod_hora]["falta"][$objGuardias->profesor]["sustituye"] = $sustituye_array2;
 			unset($ordenar);
 			unset($sustituye_array2);
 		}else {
 			$arr[$obj->cod_hora]["falta"][$objGuardias->profesor]["sustituye"] = array();
 		}
-	
+
 	}
-	
-	//Si el profesor es "P" o "A" también sacamos si da clase a esa hora. En caso afirmativo sacamos también el resto de información:
+
+	//Si el profesor es "P" o "A" tambiï¿½n sacamos si da clase a esa hora. En caso afirmativo sacamos tambiï¿½n el resto de informaciï¿½n:
 	if($_SESSION["tipo"] == "P" || $_SESSION["tipo"] == "A"){
-		
+
 		//Select para saber si tiene clase:
 		$tiene_clase1 = $dbConnection_guardias->prepare('SELECT * FROM horarios_profesores WHERE cod_profesor =:cod_profesor AND dia =:dia_semana AND cod_hora = :cod_hora');
 		$tiene_clase1 -> bindParam(':dia_semana',$dia_semana);
@@ -205,14 +205,14 @@ while($obj = $horas -> fetch(PDO::FETCH_OBJ)) {
 		$tiene_clase1 -> bindParam(':cod_profesor',$session_cod_profesor);
 		$tiene_clase1 -> execute();
 		//print_r($tiene_clase1);
-		//Si el resultado me da 1 o más filas:
+		//Si el resultado me da 1 o mï¿½s filas:
 		while($tiene_clase = $tiene_clase1 -> fetch(PDO::FETCH_OBJ)) {
 			$arr[$obj->cod_hora]["tiene_clase"]["asignatura"] = $tiene_clase -> asignatura;
 			$arr[$obj->cod_hora]["tiene_clase"]["aula"] = $tiene_clase -> aula;
 			$arr[$obj->cod_hora]["tiene_clase"]["cod_grupo"][] = $tiene_clase -> cod_grupo;
 		}
 	}
-	
+
 }
 /*echo $session_cod_profesor;
 echo "<pre>";
